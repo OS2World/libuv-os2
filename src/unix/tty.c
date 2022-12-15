@@ -29,6 +29,9 @@
 #include <termios.h>
 #include <errno.h>
 #include <sys/ioctl.h>
+#ifdef __OS2__
+#include <termio.h>
+#endif
 
 #if defined(__MVS__) && !defined(IMAXBEL)
 #define IMAXBEL 0
@@ -125,6 +128,8 @@ static int uv__tty_is_slave(const int fd) {
     abort();
 
   result = (pts == major(sb.st_rdev));
+#elif defined(__OS2__)
+  result = -1;
 #else
   /* Fallback to ptsname
    */
@@ -179,9 +184,11 @@ int uv_tty_init(uv_loop_t* loop, uv_tty_t* tty, int fd, int unused) {
      * master/slave pair (Linux). Therefore check if the fd points to a
      * slave device.
      */
+#ifndef __OS2__
     if (uv__tty_is_slave(fd) && ttyname_r(fd, path, sizeof(path)) == 0)
       r = uv__open_cloexec(path, mode | O_NOCTTY);
     else
+#endif
       r = -1;
 
     if (r < 0) {
@@ -273,6 +280,8 @@ static void uv__tty_make_raw(struct termios* tio) {
    */
   tio->c_cc[VMIN] = 1;
   tio->c_cc[VTIME] = 0;
+#elif defined __OS2__
+  // @todo implement eventually
 #else
   cfmakeraw(tio);
 #endif /* #ifdef __sun */
@@ -336,6 +345,7 @@ int uv_tty_set_mode(uv_tty_t* tty, uv_tty_mode_t mode) {
 
 
 int uv_tty_get_winsize(uv_tty_t* tty, int* width, int* height) {
+#ifndef __OS2__
   struct winsize ws;
   int err;
 
@@ -348,6 +358,10 @@ int uv_tty_get_winsize(uv_tty_t* tty, int* width, int* height) {
 
   *width = ws.ws_col;
   *height = ws.ws_row;
+#else
+  *width = 80;
+  *height = 24;
+#endif
 
   return 0;
 }

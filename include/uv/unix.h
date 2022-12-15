@@ -68,6 +68,9 @@
       defined(__QNX__)    || \
       defined(__GNU__)
 # include "uv/posix.h"
+#elif defined(__OS2__)
+# include "posix.h"
+# include <libcx/net.h>
 #endif
 
 #ifndef NI_MAXHOST

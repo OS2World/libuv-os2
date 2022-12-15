@@ -1121,11 +1121,15 @@ struct uv_interface_address_s {
   int is_internal;
   union {
     struct sockaddr_in address4;
+#ifndef __OS2__
     struct sockaddr_in6 address6;
+#endif
   } address;
   union {
     struct sockaddr_in netmask4;
+#ifndef __OS2__
     struct sockaddr_in6 netmask6;
+#endif
   } netmask;
 };
 
@@ -1665,10 +1669,14 @@ UV_EXTERN int uv_fs_event_getpath(uv_fs_event_t* handle,
                                   size_t* size);
 
 UV_EXTERN int uv_ip4_addr(const char* ip, int port, struct sockaddr_in* addr);
+#ifndef __OS2__
 UV_EXTERN int uv_ip6_addr(const char* ip, int port, struct sockaddr_in6* addr);
+#endif
 
 UV_EXTERN int uv_ip4_name(const struct sockaddr_in* src, char* dst, size_t size);
+#ifndef __OS2__
 UV_EXTERN int uv_ip6_name(const struct sockaddr_in6* src, char* dst, size_t size);
+#endif
 UV_EXTERN int uv_ip_name(const struct sockaddr* src, char* dst, size_t size);
 
 UV_EXTERN int uv_inet_ntop(int af, const void* src, char* dst, size_t size);

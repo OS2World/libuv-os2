@@ -107,16 +107,22 @@ int uv_interface_addresses(uv_interface_address_t** addresses, int* count) {
 
     address->name = uv__strdup(ent->ifa_name);
 
+#ifndef __OS2__
     if (ent->ifa_addr->sa_family == AF_INET6) {
       address->address.address6 = *((struct sockaddr_in6*) ent->ifa_addr);
     } else {
+#else
+    {
+#endif
       address->address.address4 = *((struct sockaddr_in*) ent->ifa_addr);
     }
 
     if (ent->ifa_netmask == NULL) {
       memset(&address->netmask, 0, sizeof(address->netmask));
+#ifndef __OS2__
     } else if (ent->ifa_netmask->sa_family == AF_INET6) {
       address->netmask.netmask6 = *((struct sockaddr_in6*) ent->ifa_netmask);
+#endif
     } else {
       address->netmask.netmask4 = *((struct sockaddr_in*) ent->ifa_netmask);
     }
