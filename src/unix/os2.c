@@ -1,0 +1,84 @@
+/* Copyright libuv project contributors. All rights reserved.
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to
+ * deal in the Software without restriction, including without limitation the
+ * rights to use, copy, modify, merge, publish, distribute, sublicense, and/or
+ * sell copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
+ * IN THE SOFTWARE.
+ */
+
+#include "uv.h"
+#include "internal.h"
+
+#include <unistd.h>
+
+int uv_uptime(double* uptime) {
+  int r;
+  struct timespec sp;
+  r = clock_gettime(CLOCK_MONOTONIC, &sp);
+  if (r)
+    return UV__ERR(errno);
+
+  *uptime = sp.tv_sec;
+  return 0;
+}
+
+// @todo implement
+int uv_resident_set_memory(size_t* rss) {
+  *rss = 0;
+  return 0;
+}
+
+// @todo implement
+int uv_cpu_info(uv_cpu_info_t** cpu_infos, int* count) {
+  *cpu_infos = NULL;
+  *count = 0;
+  return UV_ENOSYS;
+}
+
+// @todo implement
+uint64_t uv_get_constrained_memory(void) {
+  return 0;  /* Memory constraints are unknown. */
+}
+
+// @todo implement
+uint64_t uv_get_free_memory(void) {
+  return 0;
+}
+
+// @todo implement
+uint64_t uv_get_available_memory(void) {
+  return uv_get_free_memory();
+}
+
+// @todo implement
+uint64_t uv_get_total_memory(void) {
+  return 0;
+}
+
+void uv_loadavg(double avg[3]) {
+  avg[0] = 0;
+  avg[1] = 0;
+  avg[2] = 0;
+}
+
+// @todo implement
+int uv_exepath(char* buffer, size_t* size) {
+
+  if (buffer == NULL || size == NULL || *size == 0)
+    return UV_EINVAL;
+
+  return 0;
+}
