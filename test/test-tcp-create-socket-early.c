@@ -152,7 +152,7 @@ TEST_IMPL(tcp_create_early_bad_bind) {
   ASSERT(fd != INVALID_FD);
 
   /* Windows returns WSAEINVAL if the socket is not bound */
-#ifndef _WIN32
+#if !defined(_WIN32) && !defined(__OS2__)
   {
     int namelen;
     struct sockaddr_in6 sockname;

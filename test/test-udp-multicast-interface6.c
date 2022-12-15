@@ -59,15 +59,18 @@ TEST_IMPL(udp_multicast_interface6) {
   RETURN_SKIP("Test does not currently work in QEMU");
 #endif
 
+#ifndef __OS2__
   int r;
   uv_udp_send_t req;
   uv_buf_t buf;
   struct sockaddr_in6 addr;
   struct sockaddr_in6 baddr;
+#endif
 
   if (!can_ipv6())
     RETURN_SKIP("IPv6 not supported");
 
+#ifndef __OS2__
   ASSERT(0 == uv_ip6_addr("::1", TEST_PORT, &addr));
 
   r = uv_udp_init(uv_default_loop(), &server);
@@ -104,5 +107,6 @@ TEST_IMPL(udp_multicast_interface6) {
   ASSERT(close_cb_called == 1);
 
   MAKE_VALGRIND_HAPPY();
+#endif
   return 0;
 }

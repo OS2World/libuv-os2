@@ -82,6 +82,7 @@ static void sv_send_cb(uv_udp_send_t* req, int status) {
 }
 
 
+#ifndef __OS2__
 static int do_send(uv_udp_send_t* send_req) {
   uv_buf_t buf;
   struct sockaddr_in6 addr;
@@ -98,7 +99,6 @@ static int do_send(uv_udp_send_t* send_req) {
                      (const struct sockaddr*) &addr,
                      sv_send_cb);
 }
-
 
 static void cl_recv_cb(uv_udp_t* handle,
                        ssize_t nread,
@@ -144,6 +144,7 @@ static void cl_recv_cb(uv_udp_t* handle,
     ASSERT(r == 0);
   }
 }
+#endif
 
 
 static int can_ipv6_external(void) {
@@ -156,9 +157,11 @@ static int can_ipv6_external(void) {
     return 0;  /* Assume no IPv6 support on failure. */
 
   supported = 0;
+#ifndef __OS2__
   for (i = 0; supported == 0 && i < count; i += 1)
     supported = (AF_INET6 == addr[i].address.address6.sin6_family &&
                  !addr[i].is_internal);
+#endif
 
   uv_free_interface_addresses(addr, count);
   return supported;
@@ -166,12 +169,15 @@ static int can_ipv6_external(void) {
 
 
 TEST_IMPL(udp_multicast_join6) {
+#ifndef __OS2__
   int r;
   struct sockaddr_in6 addr;
+#endif
 
   if (!can_ipv6_external())
     RETURN_SKIP("No external IPv6 interface available");
 
+#ifndef __OS2__
   ASSERT(0 == uv_ip6_addr("::", TEST_PORT, &addr));
 
   r = uv_udp_init(uv_default_loop(), &server);
@@ -214,5 +220,6 @@ TEST_IMPL(udp_multicast_join6) {
   ASSERT(close_cb_called == 2);
 
   MAKE_VALGRIND_HAPPY();
+#endif
   return 0;
 }

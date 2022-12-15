@@ -35,9 +35,11 @@ TEST_IMPL(connect_unspecified) {
   uv_tcp_t socket4;
   struct sockaddr_in addr4;
   uv_connect_t connect4;
+#ifndef __OS2__
   uv_tcp_t socket6;
   struct sockaddr_in6 addr6;
   uv_connect_t connect6;
+#endif
 
   loop = uv_default_loop();
 
@@ -49,12 +51,14 @@ TEST_IMPL(connect_unspecified) {
                         connect_4) == 0);
 
   if (can_ipv6()) {
+#ifndef __OS2__
     ASSERT(uv_tcp_init(loop, &socket6) == 0);
     ASSERT(uv_ip6_addr("::", TEST_PORT, &addr6) == 0);
     ASSERT(uv_tcp_connect(&connect6,
                           &socket6,
                           (const struct sockaddr*) &addr6,
                           connect_6) == 0);
+#endif
   }
 
   ASSERT(uv_run(loop, UV_RUN_DEFAULT) == 0);

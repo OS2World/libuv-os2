@@ -343,8 +343,10 @@ UNUSED static int can_ipv6(void) {
     return 0;  /* Assume no IPv6 support on failure. */
 
   supported = 0;
+#ifndef __OS2__
   for (i = 0; supported == 0 && i < count; i += 1)
     supported = (AF_INET6 == addr[i].address.address6.sin6_family);
+#endif
 
   uv_free_interface_addresses(addr, count);
   return supported;

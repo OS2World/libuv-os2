@@ -213,6 +213,7 @@ static void pinger_on_connect(uv_connect_t* req, int status) {
 
 /* same ping-pong test, but using IPv6 connection */
 static void tcp_pinger_v6_new(int vectored_writes) {
+#ifndef __OS2__
   int r;
   struct sockaddr_in6 server_addr;
   pinger_t* pinger;
@@ -241,6 +242,7 @@ static void tcp_pinger_v6_new(int vectored_writes) {
 
   /* Synchronous connect callbacks are not allowed. */
   ASSERT_EQ(pinger_on_connect_count, 0);
+#endif
 }
 
 
