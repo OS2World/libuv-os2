@@ -76,7 +76,7 @@ static void connect_cb(uv_connect_t *req, int status) {
  * RST. Test checks that uv_guess_handle still works on a reset TCP handle.
  */
 TEST_IMPL(tcp_rst) {
-#ifndef _WIN32
+#if !defined(_WIN32) && !defined(__OS2__)
   struct sockaddr_in server_addr;
   int r;
 

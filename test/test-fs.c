@@ -3621,6 +3621,16 @@ TEST_IMPL(fs_partial_write) {
   RETURN_SKIP("Test not implemented on Windows.");
 }
 
+#elif defined(__OS2__)
+
+TEST_IMPL(fs_partial_read) {
+  RETURN_SKIP("Test not implemented on OS/2.");
+}
+
+TEST_IMPL(fs_partial_write) {
+  RETURN_SKIP("Test not implemented on OS/2.");
+}
+
 #else  /* !_WIN32 */
 
 struct thread_ctx {
