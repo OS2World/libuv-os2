@@ -256,6 +256,7 @@ static ssize_t uv__fs_futime(uv_fs_t* req) {
     || defined(__FreeBSD__)                                                   \
     || defined(__NetBSD__)                                                    \
     || defined(__OpenBSD__)                                                   \
+    || defined(__OS2__)                                                       \
     || defined(__sun)
   struct timeval tv[2];
   tv[0] = uv__fs_to_timeval(req->atime);
@@ -389,11 +390,27 @@ static ssize_t uv__fs_open(uv_fs_t* req) {
   /* In case of failure `uv__cloexec` will leave error in `errno`,
    * so it is enough to just set `r` to `-1`.
    */
+#ifdef __OS2__ //cloexec does not work on dirctories
+  if (r >= 0) {
+    int r2;
+    struct stat buf;
+    ssize_t rc;
+    rc = uv__fstat(r, &buf);
+    if (rc == 0 && S_ISDIR(buf.st_mode))
+      r2 = 0;
+    else
+      r2 = uv__cloexec(r, 1);
+    if (r2 != 0) {
+#else
   if (r >= 0 && uv__cloexec(r, 1) != 0) {
+#endif
     r = uv__close(r);
     if (r != 0)
       abort();
     r = -1;
+#ifdef __OS2__
+    }
+#endif
   }
 
   if (req->cb != NULL)
@@ -508,7 +525,7 @@ done:
   req->bufs = NULL;
   req->nbufs = 0;
 
-#ifdef __PASE__
+#if defined(__PASE__) || defined(__OS2__)
   /* PASE returns EOPNOTSUPP when reading a directory, convert to EISDIR */
   if (result == -1 && errno == EOPNOTSUPP) {
     struct stat buf;
@@ -1127,6 +1144,7 @@ static ssize_t uv__fs_utime(uv_fs_t* req) {
     || defined(__DragonFly__)                                                 \
     || defined(__FreeBSD__)                                                   \
     || defined(__NetBSD__)                                                    \
+    || defined(__OS2__)                                                       \
     || defined(__OpenBSD__)
   struct timeval tv[2];
   tv[0] = uv__fs_to_timeval(req->atime);
@@ -1167,6 +1185,7 @@ static ssize_t uv__fs_lutime(uv_fs_t* req) {
 #elif defined(__APPLE__)          ||                                          \
       defined(__DragonFly__)      ||                                          \
       defined(__FreeBSD__)        ||                                          \
+      defined(__OS2__)            ||                                          \
       defined(__NetBSD__)
   struct timeval tv[2];
   tv[0] = uv__fs_to_timeval(req->atime);
@@ -1257,7 +1276,11 @@ static ssize_t uv__fs_copyfile(uv_fs_t* req) {
   err = 0;
 
   /* Open the source file. */
+#ifdef __OS2__
+  srcfd = uv_fs_open(NULL, &fs_req, req->path, O_RDONLY|O_BINARY, 0, NULL);
+#else
   srcfd = uv_fs_open(NULL, &fs_req, req->path, O_RDONLY, 0, NULL);
+#endif
   uv_fs_req_cleanup(&fs_req);
 
   if (srcfd < 0)
@@ -1269,7 +1292,11 @@ static ssize_t uv__fs_copyfile(uv_fs_t* req) {
     goto out;
   }
 
+#ifdef __OS2__
+  dst_flags = O_WRONLY | O_CREAT | O_BINARY;
+#else
   dst_flags = O_WRONLY | O_CREAT;
+#endif
 
   if (req->flags & UV_FS_COPYFILE_EXCL)
     dst_flags |= O_EXCL;
