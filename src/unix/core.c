@@ -230,8 +230,10 @@ void uv__make_close_pending(uv_handle_t* handle) {
 }
 
 int uv__getiovmax(void) {
-#if defined(IOV_MAX)
+#if defined(IOV_MAX) && !defined(__OS2__)
   return IOV_MAX;
+#elif defined(__OS2__)
+  return 16;
 #elif defined(_SC_IOV_MAX)
   static int iovmax_cached = -1;
   int iovmax;
