@@ -131,8 +131,10 @@ int uv_test_getiovmax(void) {
 }
 #else
 int uv_test_getiovmax(void) {
-#if defined(IOV_MAX)
+#if defined(IOV_MAX) && !defined(__OS2__)
   return IOV_MAX;
+#elif defined(__OS2__)
+  return 16;
 #elif defined(_SC_IOV_MAX)
   static int iovmax = -1;
   if (iovmax == -1) {
@@ -687,7 +689,11 @@ static void open_noent_cb(uv_fs_t* req) {
 
 static void open_nametoolong_cb(uv_fs_t* req) {
   ASSERT(req->fs_type == UV_FS_OPEN);
+#ifdef __OS2__
+  ASSERT(req->result == UV_ENAMETOOLONG || req->result == UV_ERANGE);
+#else
   ASSERT(req->result == UV_ENAMETOOLONG);
+#endif
   open_cb_count++;
   uv_fs_req_cleanup(req);
 }
@@ -735,8 +741,13 @@ TEST_IMPL(fs_file_nametoolong) {
   name[TOO_LONG_NAME_LENGTH] = 0;
 
   r = uv_fs_open(NULL, &req, name, O_RDONLY, 0, NULL);
+#ifdef __OS2__
+  ASSERT(r == UV_ENAMETOOLONG || r == UV_ERANGE);
+  ASSERT(req.result == UV_ENAMETOOLONG || r == UV_ERANGE);
+#else
   ASSERT(r == UV_ENAMETOOLONG);
   ASSERT(req.result == UV_ENAMETOOLONG);
+#endif
   uv_fs_req_cleanup(&req);
 
   r = uv_fs_open(loop, &req, name, O_RDONLY, 0, open_nametoolong_cb);
@@ -1396,7 +1407,7 @@ TEST_IMPL(fs_fstat) {
 
   loop = uv_default_loop();
 
-  r = uv_fs_open(NULL, &req, "test_file", O_RDWR | O_CREAT,
+  r = uv_fs_open(NULL, &req, "test_file", O_RDWR | O_CREAT | O_BINARY,
       S_IWUSR | S_IRUSR, NULL);
   ASSERT(r >= 0);
   ASSERT(req.result >= 0);
@@ -1675,7 +1686,7 @@ TEST_IMPL(fs_chmod) {
   ASSERT(req.result == sizeof(test_buf));
   uv_fs_req_cleanup(&req);
 
-#ifndef _WIN32
+#if !defined(_WIN32) && !defined(__OS2__)
   /* Make the file write-only */
   r = uv_fs_chmod(NULL, &req, "test_file", 0200, NULL);
   ASSERT(r == 0);
@@ -1686,12 +1697,14 @@ TEST_IMPL(fs_chmod) {
 #endif
 
   /* Make the file read-only */
+#if !defined(__OS2__)
   r = uv_fs_chmod(NULL, &req, "test_file", 0400, NULL);
   ASSERT(r == 0);
   ASSERT(req.result == 0);
   uv_fs_req_cleanup(&req);
 
   check_permission("test_file", 0400);
+#endif
 
   /* Make the file read+write with sync uv_fs_fchmod */
   r = uv_fs_fchmod(NULL, &req, file, 0600, NULL);
@@ -1701,7 +1714,7 @@ TEST_IMPL(fs_chmod) {
 
   check_permission("test_file", 0600);
 
-#ifndef _WIN32
+#if !defined(_WIN32) && !defined(__OS2__)
   /* async chmod */
   {
     static int mode = 0200;
@@ -1715,6 +1728,7 @@ TEST_IMPL(fs_chmod) {
 #endif
 
   /* async chmod */
+#if !defined(__OS2__)
   {
     static int mode = 0400;
     req.data = &mode;
@@ -1723,6 +1737,7 @@ TEST_IMPL(fs_chmod) {
   ASSERT(r == 0);
   uv_run(loop, UV_RUN_DEFAULT);
   ASSERT(chmod_cb_count == 1);
+#endif
 
   /* async fchmod */
   {
@@ -1918,7 +1933,7 @@ TEST_IMPL(fs_chown) {
   uv_run(loop, UV_RUN_DEFAULT);
   ASSERT(fchown_cb_count == 1);
 
-#ifndef __HAIKU__
+#if !defined(__HAIKU__) && !defined(__OS2__)
   /* Haiku doesn't support hardlink */
   /* sync link */
   r = uv_fs_link(NULL, &req, "test_file", "test_file_link", NULL);
@@ -2579,7 +2594,11 @@ TEST_IMPL(fs_utime) {
   uv_fs_req_cleanup(&req);
   uv_fs_close(loop, &req, r, NULL);
 
+#ifndef __OS2__
   atime = mtime = 400497753.25; /* 1982-09-10 11:22:33.25 */
+#else
+  atime = mtime = 1291404900.25; /* 2010-12-03 20:35:00.25 */
+#endif
 
   r = uv_fs_utime(NULL, &req, path, atime, mtime, NULL);
   ASSERT(r == 0);
@@ -2639,7 +2658,12 @@ TEST_IMPL(fs_utime_round) {
   ASSERT_EQ(0, r);
   ASSERT_EQ(0, req.result);
   uv_fs_req_cleanup(&req);
+#ifdef __OS2__
+  atime = mtime = 315529200;  /* we accept pre 1980 values, but system sets it to 1980-01-01-01T00:00:00 */
   check_utime(path, atime, mtime, /* test_lutime */ 0);
+#else
+  check_utime(path, atime, mtime, /* test_lutime */ 0);
+#endif
   unlink(path);
 
   MAKE_VALGRIND_HAPPY();
@@ -2656,7 +2680,7 @@ TEST_IMPL(fs_stat_root) {
 
   r = uv_fs_stat(NULL, &stat_req, "..\\..\\..\\..\\..\\..\\..", NULL);
   ASSERT(r == 0);
-
+980
   r = uv_fs_stat(NULL, &stat_req, "..", NULL);
   ASSERT(r == 0);
 
@@ -2677,7 +2701,6 @@ TEST_IMPL(fs_stat_root) {
   return 0;
 }
 #endif
-
 
 TEST_IMPL(fs_futime) {
   utime_check_t checkme;
@@ -2700,7 +2723,11 @@ TEST_IMPL(fs_futime) {
   uv_fs_req_cleanup(&req);
   uv_fs_close(loop, &req, r, NULL);
 
+#ifndef __OS2__
   atime = mtime = 400497753.25; /* 1982-09-10 11:22:33.25 */
+#else
+  atime = mtime = 1291404900.25; /* 2010-12-03 20:35:00.25 */
+#endif
 
   r = uv_fs_open(NULL, &req, path, O_RDWR, 0, NULL);
   ASSERT(r >= 0);
@@ -2777,7 +2804,11 @@ TEST_IMPL(fs_lutime) {
   uv_fs_req_cleanup(&req);
 
   /* Test the synchronous version. */
+#ifndef __OS2__
   atime = mtime = 400497753.25; /* 1982-09-10 11:22:33.25 */
+#else
+  atime = mtime = 1291404900.25; /* 2010-12-03 20:35:00.25 */
+#endif
 
   checkme.atime = atime;
   checkme.mtime = mtime;
@@ -3186,7 +3217,7 @@ static void fs_read_file_eof(int add_flags) {
   loop = uv_default_loop();
 
   r = uv_fs_open(NULL, &open_req1, "test_file",
-      O_WRONLY | O_CREAT | add_flags, S_IWUSR | S_IRUSR, NULL);
+      O_BINARY | O_WRONLY | O_CREAT | add_flags, S_IWUSR | S_IRUSR, NULL);
   ASSERT(r >= 0);
   ASSERT(open_req1.result >= 0);
   uv_fs_req_cleanup(&open_req1);
@@ -3250,7 +3281,7 @@ static void fs_write_multiple_bufs(int add_flags) {
   loop = uv_default_loop();
 
   r = uv_fs_open(NULL, &open_req1, "test_file",
-      O_WRONLY | O_CREAT | add_flags, S_IWUSR | S_IRUSR, NULL);
+      O_WRONLY | O_CREAT | O_BINARY | add_flags, S_IWUSR | S_IRUSR, NULL);
   ASSERT(r >= 0);
   ASSERT(open_req1.result >= 0);
   uv_fs_req_cleanup(&open_req1);
@@ -3356,7 +3387,7 @@ static void fs_write_alotof_bufs(int add_flags) {
   r = uv_fs_open(NULL,
                  &open_req1,
                  "test_file",
-                 O_RDWR | O_CREAT | add_flags,
+                 O_RDWR | O_CREAT | O_BINARY | add_flags,
                  S_IWUSR | S_IRUSR,
                  NULL);
   ASSERT(r >= 0);
@@ -3468,7 +3499,7 @@ static void fs_write_alotof_bufs_with_offset(int add_flags) {
   r = uv_fs_open(NULL,
                  &open_req1,
                  "test_file",
-                 O_RDWR | O_CREAT | add_flags,
+                 O_RDWR | O_CREAT | O_BINARY | add_flags,
                  S_IWUSR | S_IRUSR,
                  NULL);
   ASSERT(r >= 0);
