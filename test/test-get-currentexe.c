@@ -45,13 +45,21 @@ TEST_IMPL(get_currentexe) {
   size = sizeof(buffer) / sizeof(buffer[0]);
   r = uv_exepath(buffer, &size);
   ASSERT(!r);
-
 #ifdef _WIN32
   snprintf(path, sizeof(path), "%s", executable_path);
 #else
   ASSERT_NOT_NULL(realpath(executable_path, path));
 #endif
 
+  /* convert to upercase and change / to \ */
+  int i;
+  for(i=0; path[i]!='\0'; i++)
+  {
+    if (path[i] >='a' && path[i] <='z')
+      path[i] = path[i] - 32;
+    if (path[i] == '/')
+      path[i] = '\\'; 
+  }
   match = strstr(buffer, path);
   /* Verify that the path returned from uv_exepath is a subdirectory of
    * executable_path.

@@ -111,15 +111,18 @@ int uv_exepath(char* buffer, size_t* size) {
   APIRET rc = NO_ERROR;
   PTIB ptib = NULL;
   PPIB ppib = NULL;
+  char int_buf[CCHMAXPATH];
+  size_t int_size = CCHMAXPATH;
 
-  if (buffer == NULL || size == NULL || *size < CCHMAXPATH)
+  if (buffer == NULL || size == NULL || *size == 0)
     return UV_EINVAL;
 
-  rc = DosGetInfoBlocks(&ptib,&ppib);
+  rc = DosGetInfoBlocks(&ptib, &ppib);
   if (ppib) {
-    memset(buffer,0,*size);
-    rc = DosQueryModuleName(ppib->pib_hmte,*size-1,buffer);
+    memset(int_buf, 0, int_size);
+    rc = DosQueryModuleName(ppib->pib_hmte, int_size-1, int_buf);
     if (NO_ERROR == rc) {
+      uv__strscpy(buffer, int_buf, *size);
       /* Set new size. */
       *size = strlen(buffer);
       return 0;
