@@ -701,8 +701,12 @@ endforeach()
 string(REPLACE ";" " " LIBS "${LIBS}")
 # Consider setting project version via project() call?
 file(STRINGS configure.ac configure_ac REGEX ^AC_INIT)
-string(REGEX MATCH "([0-9]+)[.][0-9]+[.][0-9]+" PACKAGE_VERSION "${configure_ac}")
+string(REGEX MATCH "([0-9]+)[.]([0-9]+)[.]([0-9]+)" PACKAGE_VERSION "${configure_ac}")
 set(UV_VERSION_MAJOR "${CMAKE_MATCH_1}")
+if(OS2)
+  set(UV_VERSION_MINOR "${CMAKE_MATCH_2}")
+  set(UV_VERSION_PATCH "${CMAKE_MATCH_3}")
+endif()
 
 set(includedir ${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_INCLUDEDIR})
 set(libdir ${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_LIBDIR})
@@ -729,6 +733,13 @@ if(LIBUV_BUILD_SHARED)
           RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
           LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
           ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR})
+  if(OS2)
+    set_target_properties(uv PROPERTIES
+      OS2_DEF_VENDOR "$ENV{VENDOR}"
+      OS2_DEF_PATCH "${UV_VERSION_PATCH}"
+      OS2_DEF_VERSION "${UV_VERSION_MAJOR}.${UV_VERSION_MINOR}.${UV_VERSION_PATCH}")
+  endif()
+
 endif()
 
 if(MSVC)
