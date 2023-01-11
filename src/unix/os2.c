@@ -133,3 +133,23 @@ int uv_exepath(char* buffer, size_t* size) {
   return UV_EAI_FAIL;
 
 }
+
+int uv__random_os2random(void* buf, size_t buflen) {
+
+  int i;
+  char *buf2 = buf;
+
+  if (buflen == 0)
+    return 0;
+
+  for (i = 0; i < buflen;) {
+      unsigned long ul = (unsigned long)random();
+      *buf2++ = (unsigned char)(ul);
+      i++;
+      if (i <= buflen)
+        *buf2++ = (unsigned char)(ul >> 8);
+      i++;
+  }
+
+  return 0;
+}
