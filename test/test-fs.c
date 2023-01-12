@@ -1407,7 +1407,7 @@ TEST_IMPL(fs_fstat) {
 
   loop = uv_default_loop();
 
-  r = uv_fs_open(NULL, &req, "test_file", O_RDWR | O_CREAT | O_BINARY,
+  r = uv_fs_open(NULL, &req, "test_file", O_RDWR | O_CREAT,
       S_IWUSR | S_IRUSR, NULL);
   ASSERT(r >= 0);
   ASSERT(req.result >= 0);
@@ -3217,7 +3217,7 @@ static void fs_read_file_eof(int add_flags) {
   loop = uv_default_loop();
 
   r = uv_fs_open(NULL, &open_req1, "test_file",
-      O_BINARY | O_WRONLY | O_CREAT | add_flags, S_IWUSR | S_IRUSR, NULL);
+      O_WRONLY | O_CREAT | add_flags, S_IWUSR | S_IRUSR, NULL);
   ASSERT(r >= 0);
   ASSERT(open_req1.result >= 0);
   uv_fs_req_cleanup(&open_req1);
@@ -3281,7 +3281,7 @@ static void fs_write_multiple_bufs(int add_flags) {
   loop = uv_default_loop();
 
   r = uv_fs_open(NULL, &open_req1, "test_file",
-      O_WRONLY | O_CREAT | O_BINARY | add_flags, S_IWUSR | S_IRUSR, NULL);
+      O_WRONLY | O_CREAT | add_flags, S_IWUSR | S_IRUSR, NULL);
   ASSERT(r >= 0);
   ASSERT(open_req1.result >= 0);
   uv_fs_req_cleanup(&open_req1);
@@ -3387,7 +3387,7 @@ static void fs_write_alotof_bufs(int add_flags) {
   r = uv_fs_open(NULL,
                  &open_req1,
                  "test_file",
-                 O_RDWR | O_CREAT | O_BINARY | add_flags,
+                 O_RDWR | O_CREAT | add_flags,
                  S_IWUSR | S_IRUSR,
                  NULL);
   ASSERT(r >= 0);
@@ -3499,7 +3499,7 @@ static void fs_write_alotof_bufs_with_offset(int add_flags) {
   r = uv_fs_open(NULL,
                  &open_req1,
                  "test_file",
-                 O_RDWR | O_CREAT | O_BINARY | add_flags,
+                 O_RDWR | O_CREAT | add_flags,
                  S_IWUSR | S_IRUSR,
                  NULL);
   ASSERT(r >= 0);
