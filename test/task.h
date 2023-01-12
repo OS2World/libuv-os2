@@ -54,9 +54,9 @@
 # define TEST_PIPENAME_2 "\\\\.\\pipe\\uv-test2"
 # define TEST_PIPENAME_3 "\\\\.\\pipe\\uv-test3"
 #elif defined(__OS2__)
-# define TEST_PIPENAME "/@unixroot/var/tmp/uv-test-sock"
-# define TEST_PIPENAME_2 "/@unixroot/var/tmp/uv-test-sock2"
-# define TEST_PIPENAME_3 "/@unixroot/var/tmp/uv-test-sock3"
+# define TEST_PIPENAME "\\socket\\uv-test-sock"
+# define TEST_PIPENAME_2 "\\socket\\uv-test-sock2"
+# define TEST_PIPENAME_3 "\\socket\\uv-test-sock3"
 #else
 # define TEST_PIPENAME "/tmp/uv-test-sock"
 # define TEST_PIPENAME_2 "/tmp/uv-test-sock2"
