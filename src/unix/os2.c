@@ -107,31 +107,27 @@ void uv_loadavg(double avg[3]) {
 }
 
 int uv_exepath(char* buffer, size_t* size) {
-
-  APIRET rc = NO_ERROR;
-  PTIB ptib = NULL;
-  PPIB ppib = NULL;
-  char int_buf[CCHMAXPATH];
-  size_t int_size = CCHMAXPATH;
+  char path[PATH_MAX];
+  char exepath[PATH_MAX];
 
   if (buffer == NULL || size == NULL || *size == 0)
-    return UV_EINVAL;
+    return -EINVAL;
 
-  rc = DosGetInfoBlocks(&ptib, &ppib);
-  if (ppib) {
-    memset(int_buf, 0, int_size);
-    rc = DosQueryModuleName(ppib->pib_hmte, int_size-1, int_buf);
-    if (NO_ERROR == rc) {
-      uv__strscpy(buffer, int_buf, *size);
-      /* Set new size. */
-      *size = strlen(buffer);
-      return 0;
-    } else {
-      return ((ERROR_BAD_LENGTH == rc) ? UV_EAI_OVERFLOW : UV_EAI_FAIL);
-    }
-  }
-  return UV_EAI_FAIL;
+  if (_execname(path, sizeof(path)) == -1)
+    return -EIO;
 
+  /* Get a real name not an upper-cased name, and convert back-slashes to
+   * slashes.
+   */
+  if (!realpath(path, exepath))
+    return -errno;
+
+  /* Copy to buffer at most *size bytes. */
+  strncpy(buffer, exepath, *size);
+  buffer[*size - 1] = '\0';
+  *size = strlen(buffer);
+
+  return 0;
 }
 
 int uv__random_os2random(void* buf, size_t buflen) {
