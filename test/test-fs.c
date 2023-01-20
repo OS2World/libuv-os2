@@ -131,10 +131,8 @@ int uv_test_getiovmax(void) {
 }
 #else
 int uv_test_getiovmax(void) {
-#if defined(IOV_MAX) && !defined(__OS2__)
+#if defined(IOV_MAX)
   return IOV_MAX;
-#elif defined(__OS2__)
-  return 16;
 #elif defined(_SC_IOV_MAX)
   static int iovmax = -1;
   if (iovmax == -1) {
