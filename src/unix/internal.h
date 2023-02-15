@@ -92,6 +92,14 @@
 # define UV__PATH_MAX 8192
 #endif
 
+union uv__sockaddr {
+#ifndef __OS2__
+  struct sockaddr_in6 in6;
+#endif
+  struct sockaddr_in in;
+  struct sockaddr addr;
+};
+
 #define ACCESS_ONCE(type, var)                                                \
   (*(volatile type*) &(var))
 
@@ -296,6 +304,7 @@ int uv__kqueue_init(uv_loop_t* loop);
 int uv__platform_loop_init(uv_loop_t* loop);
 void uv__platform_loop_delete(uv_loop_t* loop);
 void uv__platform_invalidate_fd(uv_loop_t* loop, int fd);
+int uv__process_init(uv_loop_t* loop);
 
 /* various */
 void uv__async_close(uv_async_t* handle);
@@ -312,7 +321,6 @@ size_t uv__thread_stack_size(void);
 void uv__udp_close(uv_udp_t* handle);
 void uv__udp_finish_close(uv_udp_t* handle);
 FILE* uv__open_file(const char* path);
-int uv__getpwuid_r(uv_passwd_t* pwd);
 int uv__search_path(const char* prog, char* buf, size_t* buflen);
 void uv__wait_children(uv_loop_t* loop);
 
@@ -426,5 +434,10 @@ uv__fs_copy_file_range(int fd_in,
                        unsigned int flags);
 #endif
 
+#if defined(__linux__) || (defined(__FreeBSD__) && __FreeBSD_version >= 1301000)
+#define UV__CPU_AFFINITY_SUPPORTED 1
+#else
+#define UV__CPU_AFFINITY_SUPPORTED 0
+#endif
 
 #endif /* UV_UNIX_INTERNAL_H_ */

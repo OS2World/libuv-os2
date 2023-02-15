@@ -52,14 +52,6 @@
 # endif
 #endif
 
-union uv__sockaddr {
-#ifndef __OS2__
-  struct sockaddr_in6 in6;
-#endif
-  struct sockaddr_in in;
-  struct sockaddr addr;
-};
-
 static void uv__udp_run_completed(uv_udp_t* handle);
 static void uv__udp_io(uv_loop_t* loop, uv__io_t* w, unsigned int revents);
 static void uv__udp_recvmsg(uv_udp_t* handle);
