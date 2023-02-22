@@ -330,6 +330,9 @@ int uv__random_getrandom(void* buf, size_t buflen);
 int uv__random_getentropy(void* buf, size_t buflen);
 int uv__random_readpath(const char* path, void* buf, size_t buflen);
 int uv__random_sysctl(void* buf, size_t buflen);
+#if defined(__OS2__)
+int uv__random_os2random(void* buf, size_t buflen);
+#endif
 
 #if defined(__APPLE__)
 int uv___stream_fd(const uv_stream_t* handle);
