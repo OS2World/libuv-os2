@@ -69,7 +69,7 @@
       defined(__GNU__)
 # include "uv/posix.h"
 #elif defined(__OS2__)
-# include "posix.h"
+# include "uv/posix.h"
 # include <libcx/net.h>
 #endif
 
